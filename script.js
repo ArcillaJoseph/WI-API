@@ -1,51 +1,30 @@
-async function fetchWordDefinition(word) {
-    const url = `https://api.dictionaryapi.dev/api/v2/entries/en/${word}`;
-    
+document.getElementById("search-btn").addEventListener("click", async () => {
+    const word = document.getElementById("word-input").value.trim();
+    const resultContainer = document.getElementById("result");
+  
+    if (word === "") {
+      resultContainer.innerHTML = "<p>Please enter a word to search.</p>";
+      resultContainer.style.transform = "scale(1)";
+      return;
+    }
+  
     try {
-        const response = await fetch(url);
-        if (!response.ok) {
-            throw new Error('Word not found');
-        }
-        
-        const data = await response.json();
-        displayDefinition(data);
+      const response = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${word}`);
+      if (!response.ok) throw new Error("Word not found");
+  
+      const data = await response.json();
+      const definition = data[0].meanings[0].definitions[0].definition;
+  
+      resultContainer.innerHTML = `
+        <h2>${word}</h2>
+        <p>${definition}</p>
+      `;
+      resultContainer.style.opacity = "1";
+      resultContainer.style.transform = "scale(1)";
     } catch (error) {
-        console.error(error);
-        alert('Error: ' + error.message);
+      resultContainer.innerHTML = `<p>${error.message}</p>`;
+      resultContainer.style.opacity = "1";
+      resultContainer.style.transform = "scale(1)";
     }
-}
-
-function displayDefinition(data) {
-    const resultsDiv = document.getElementById('results');
-    resultsDiv.innerHTML = ''; // Clear previous results
-
-    const word = data[0].word;
-    const meanings = data[0].meanings;
-
-    meanings.forEach((meaning) => {
-        const partOfSpeech = meaning.partOfSpeech;
-
-        meaning.definitions.forEach((definition, index) => {
-            const definitionDiv = document.createElement('div');
-            definitionDiv.classList.add('definition');
-            definitionDiv.innerText = `${index + 1}. (${partOfSpeech}) ${definition.definition}`;
-
-            // Example sentence placeholder
-            const exampleSentence = document.createElement('div');
-            exampleSentence.classList.add('example');
-            exampleSentence.innerText = `Example: "${definition.example || 'No example available'}"`;
-            definitionDiv.appendChild(exampleSentence);
-
-            resultsDiv.appendChild(definitionDiv);
-        });
-    });
-}
-
-document.getElementById('searchButton').addEventListener('click', () => {
-    const wordInput = document.getElementById('wordInput').value.trim();
-    if (wordInput) {
-        fetchWordDefinition(wordInput);
-    } else {
-        alert('Please enter a word');
-    }
-});
+  });
+  
